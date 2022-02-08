@@ -79,7 +79,6 @@ def pawns():
     list_of_all_pawns = []
     black_pawns = {name: Pawn(pawn_name=name) for name in black_pawn_names}
     for blp in black_pawns:
-        # list_black_pawns=[blp]
         black_pawns[blp].pawn_colour = "black"
         list_of_all_pawns.append(black_pawns[blp])
     white_pawns = {name: Pawn(pawn_name=name) for name in white_pawn_names}
@@ -101,22 +100,22 @@ def chessboard():
         temp_list.append((pawns()[-1]))
         list_of_all_fields.append(temp_list)
     
-    # dla wszystkich pół, które nie sa uzywane w rozgrywce przypisuje status UNUSED
-    for field in list_of_all_fields:                                    # dla pola znajdującego sie na liscie wszystkich pól
-        if field[0].field_name not in active_fields_names:              # jezeli pole nie jest na liscie pol aktywnych to
-            field[0].field_status = "UNUSED"                           # przypisz parametr obiektu STATUS jako UNUSED
+    # For all fields that are not used in the game (white fields) it assigns the status "UNUSED"
+    for field in list_of_all_fields:                                    # For a field that is on the list of all fields
+        if field[0].field_name not in active_fields_names:              # if the field is not on the list of active fields, then
+            field[0].field_status = "UNUSED"                           # assign a parameter of the STATUS object as "UNUSED"
     z = 0
-    for i in range(0, 24):                                      # w przeciwnym przypadku dla pierwszych 24 pól
-        if list_of_all_fields[i][0].field_status == "Free":     # zmień status pola z Free
-            list_of_all_fields[i][0].field_status = "Occupied"  # na Occupied, bo tam ustawione będą pionki
+    for i in range(0, 24):                                      # otherwise, for the first 24 fields
+        if list_of_all_fields[i][0].field_status == "Free":     # change the field status from "Free"
+            list_of_all_fields[i][0].field_status = "Occupied"  # on "Occupied", because there will be pawns
         if list_of_all_fields[i][0].field_name in active_fields_names:
             list_of_all_fields[i][1] = pawns()[z]
             z += 1
           
     z = 0
-    for j in range(40, 64):
-        if list_of_all_fields[j][0].field_status == "Free":  # zmień status pola z Free
-            list_of_all_fields[j][0].field_status = "Occupied"  # na Occupied, bo tam ustawione będą pionki
+    for j in range(40, 64):                                     # For last 24 fields
+        if list_of_all_fields[j][0].field_status == "Free":     # change the field status from "Free"
+            list_of_all_fields[j][0].field_status = "Occupied"  # on "Occupied", because there will be pawns
         if list_of_all_fields[j][0].field_name in active_fields_names:
             list_of_all_fields[j][1] = pawns()[z+12]
             z += 1
@@ -127,43 +126,109 @@ def chessboard():
 def user_move():
     pawn_name_choose = input("Podaj nazwę pionka: ")
     field_name_choose = input("Podaj nazwę pola: ")
+    # ask for pawn until chosen pawn is on white or black pawn lists
     while pawn_name_choose.upper() not in white_pawn_names and pawn_name_choose.upper() not in black_pawn_names:
         pawn_name_choose = input("Podaj poprawną nazwę pionka: ")
-    while field_name_choose.upper() not in active_fields_names:
+    # ask for field until chosen field is on active field name list and the move is no longer than 1 field
+    while field_name_choose.upper() not in active_fields_names or is_move_correct([field_name_choose.upper(), "W_O_P"], temp_chessboard) == "wrong":
+    # while field_name_choose.upper() not in active_fields_names:
         field_name_choose = input("Podaj poprawną nazwę pola: ")
-    # print(f'The Chosen pawn = {pawn_name_choose.upper()}, the chosen field = {field_name_choose.upper()}')
     return field_name_choose.upper(), pawn_name_choose.upper()
     
 
-def check_which_pawn(move_func):
-    which_field = move_func[0]                  # nazwa pola (tylko nazwa)
-    which_pawn = move_func[1]                   # nazwa pionka (tylko nazwa)
+def is_move_correct(move_func, temp_chessb):
+    which_field = move_func[0]                  # field name (name only, not object)
+    which_pawn = move_func[1]                   # pawn name (name only, not object)
     print('*'*40)
-    ch = chessboard()                           # zamienic na zewnetrzna tabele
-    for fields in ch:
+    for fields in temp_chessb:
         if which_pawn == fields[1].pawn_name:
-            which_pawn_colour = ch[ch.index(fields)][1].pawn_colour
+            which_pawn_colour = temp_chessb[temp_chessb.index(fields)][1].pawn_colour
+            which_pawn_field_index = temp_chessb.index(fields)
             break
-    for fields in ch:
+
+    for fields in temp_chessb:
         if which_field == fields[0].field_name:
-            field_index = ch.index(fields)
-            print(f'Choosen field: {which_field}')
-            # print(f'Field reads from list: {fields[0].field_name}')
-            print(f'Choosen field ({fields[0].field_name}) has status: {fields[0].field_status}')
-            print(f'Choosen pawn ({which_pawn}) has colour: {which_pawn_colour}')
-            print(f"Field's index is: {field_index}")
-            print(f'Into field with index: {field_index} is pawn: {ch[field_index][1].pawn_name}')
-            print(f'Which has colour: {ch[field_index][1].pawn_colour}')
-            if ch[field_index][1].pawn_colour != which_pawn_colour and ch[field_index][1].pawn_colour != "no_colour":
-                print("Checking next field")
-            elif ch[field_index][1].pawn_colour == which_pawn_colour and ch[field_index][1].pawn_colour != "no_colour":
-                print(f"You can't move on field {fields[0].field_name}")
-            elif ch[field_index][0].field_status == "Occupied":
-                print("Field is occupied. You can't move there")
-            else:
+            chosen_field_index = temp_chessb.index(fields)
+            # check distance, is it not too long
+            if (which_pawn_field_index - chosen_field_index < 7) and (which_pawn_field_index - chosen_field_index > 18):
+            # if (which_pawn_field_index-chosen_field_index !=7) and (which_pawn_field_index-chosen_field_index !=9):
+                print("Distance is too long")
+                return "wrong"
+            if temp_chessb[chosen_field_index][0].field_status == "Free":
+                # move pawn with "move_pawn()" function
+                # remove print below
                 print(f'You can move on field {fields[0].field_name}')
-                # to zrobic procedure, która zmienia zawartosci poszczególnych pol w tablicy temp_chessboard
+                move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
+            elif temp_chessb[chosen_field_index][1].pawn_colour == which_pawn_colour:
+                # remove print below and return error
+                # print(f'kolor pionka na wybranym polu: {temp_chessb[chosen_field_index][1].pawn_colour}')
+                # print(f'kolor wybranego pionka: {which_pawn_colour}')
+                print("Field is occupied by your pawn. You can't move there")
+            elif temp_chessb[chosen_field_index][1].pawn_colour != which_pawn_colour:
+                # uwaga tutaj dorobic fukcje, ktora kasuje pionek z listy po jego przekroczeniu
+                print("Checking next field")
+                print(f'kolor pionka na wybranym polu: {temp_chessb[chosen_field_index][1].pawn_colour}')
+                print(f'kolor wybranego pionka: {which_pawn_colour}')
+                print(chosen_field_index)
+                print(which_pawn_field_index-chosen_field_index)
+                if (which_pawn_field_index-chosen_field_index == abs(7)):
+                    chosen_field_index += 7
+                    print(chosen_field_index)
+                elif (which_pawn_field_index - chosen_field_index == abs(9)):
+                    chosen_field_index += 9
+                    print(chosen_field_index)
+
+            """
+            bardzo wazne informacja ponizej jest:
+            Sprawdz czy nie podano zakresu większego niż jedno pole -> gotowe
+            Sprawdz czy wybrane pole jest wolne, jezeli tak to przesun tam pionek -> gotowe.
+            Jezeli nie, to sprawdz jakiego koloru jest tam pionek -> gotowe
+            jezeli twojego koloru, to nie mozesz tam isc -> gotowe
+            jezeli przeciwnego, to sprawdz co jest w nastepnym polu za tym pionkiem
+            jezeli jest wolne, to przenies tam pinkek i wykasuj pionek, który przeskoczyles.
+            jezeli jest zajete, to nie mozesz tam isc
+            """
                 
+                
+            # print(f'Chosen field: {which_field}')
+            # print(f'Chosen field ({fields[0].field_name}) has status: {fields[0].field_status}')
+            # print(f'Chosen pawn ({which_pawn}) has colour: {which_pawn_colour}')
+            # print(f'Chosen pawn occupied field with index: {which_pawn_field_index}')
+            # print(f"Field's index is: {chosen_field_index}")
+            # print(f'Into field with index: {chosen_field_index} is pawn: {temp_chessb[chosen_field_index][1].pawn_name}')
+            # print(f'Which has colour: {temp_chessb[chosen_field_index][1].pawn_colour}')
+    
+def move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
+    # what I need:
+    # which_pawn_field_index, chosen_field_index
+    print('*' * 40)
+    # do przesunięcia pionka
+    # [0] - obiekt klasy Field
+    # [1] - obiekt klasy Pawn
+    # chosen_field - wybrane pole
+    # which_pawn_field - pole, na którym jest wybrany pionek
+    temp_chessb[chosen_field_index][1] = temp_chessb[which_pawn_field_index][1]  # skopiowanie obiektu klasy Pawn z pola gdzie sie znajduje na pole wskazane
+    temp_chessb[chosen_field_index][0].field_status = "Occupied"                 # zmiana statusu pola wybranego po przeniesieniu tam pionka
+    temp_chessb[which_pawn_field_index][1] = pawns()[-1]                         # ustawienie wartości obiektu klasy Pawn na wartośc W_O_P w dotychczasowym polu
+    temp_chessb[which_pawn_field_index][0].field_status = "Free"                 # oraz ustawienie statusu zwolnionego pola na Free
+
+
+def main_game():
+    temp_chessboard = chessboard()
+    # zrobic warunek, który ogranicza czas gry do wyzerowania listy pinkow czarnych lub bialych
+    while True:
+        # for x in range(64):
+        #     if temp_chessboard[x][0].field_status != "UNUSED":
+        #         print(temp_chessboard[x][0].field_name, end=", ")
+        #         print(temp_chessboard[x][0].field_status, end=", ")
+        #         print(temp_chessboard[x][1].pawn_name)
+        # print('*'*40)
+        is_move_correct(user_move(), temp_chessboard)
+        for x in range(64):
+            if temp_chessboard[x][0].field_status != "UNUSED":
+                print(temp_chessboard[x][0].field_name, end=", ")
+                print(temp_chessboard[x][0].field_status, end=", ")
+                print(temp_chessboard[x][1].pawn_name)
             
 
-check_which_pawn(user_move())
+main_game()
