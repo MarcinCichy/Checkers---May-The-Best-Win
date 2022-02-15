@@ -86,7 +86,8 @@ class Pawn:
         self.pawn_name = pawn_name
         self.pawn_colour = pawn_colour                # Black or White.
         self.pawn_place = pawn_place                  # The place where pawn is on the board.
-        
+    
+    # do wywalenia
     def pawn_move(self):
         pass
 
@@ -146,12 +147,18 @@ def chessboard():
     return list_of_all_fields
 
 
-def take_user_move():
+def take_user_move(who_turn):
+    print(f"Now it's turn: {who_turn}s")
     pawn_name_choose = input("Enter the name of the pawn: ")
+    # ask for pawn until chosen pawn is on white or black pawn lists and the colour of pawn is equal who_turn
+    if who_turn == "white":
+        while pawn_name_choose.upper() not in white_pawn_names:
+            pawn_name_choose = input("Enter the correct name of the pawn: ")
+    elif who_turn == "black":
+        while pawn_name_choose.upper() not in black_pawn_names:
+            pawn_name_choose = input("Enter the correct name of the pawn: ")
     field_name_choose = input("Enter a field name: ")
-    # ask for pawn until chosen pawn is on white or black pawn lists
-    while pawn_name_choose.upper() not in white_pawn_names and pawn_name_choose.upper() not in black_pawn_names:
-        pawn_name_choose = input("Enter the correct name of the pawn: ")
+    
     # ask for field until chosen field is on active field name list and the move is no longer than 1 field
     while field_name_choose.upper() not in active_fields_names:
         field_name_choose = input("Please enter a valid field name: ")
@@ -165,21 +172,26 @@ def is_move_correct(move_func, temp_chessb):
         if which_pawn == fields[1].pawn_name:
             which_pawn_field_index = temp_chessb.index(fields)
             break
-
+            
     for fields in temp_chessb:
         if which_field == fields[0].field_name:
             chosen_field_index = temp_chessb.index(fields)
+            distance = which_pawn_field_index - chosen_field_index
+        
             # check distance, is it not too long
-            distance = abs(which_pawn_field_index - chosen_field_index)
-            if (distance != 7) and (distance != 14) and (distance != 9) and (distance != 18):
+            if (abs(distance) != 7) and (abs(distance) != 14) and (abs(distance) != 9) and (abs(distance) != 18):
                 return "You can't move there. Wrong distance."
+                # check if pawn moves back, that move is prohibited
+            elif ((which_pawn in white_pawn_names) and distance < 0) or ((which_pawn in black_pawn_names) and distance > 0):
+                return f"You can't move back your pawn."
             elif (abs(which_pawn_field_index-chosen_field_index) == 14) or (abs(which_pawn_field_index-chosen_field_index) == 18):
                 info_capture = capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
                 return info_capture
             # check that the selected field is free. If yes...
             elif temp_chessb[chosen_field_index][0].field_status == "Free":
                 move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
-                return f'You can move on field: {fields[0].field_name}.'
+                # return f'You can move on field: {fields[0].field_name}.'
+                return temp_chessb[chosen_field_index][1].pawn_colour
             # check that the selected field is free. If no...
             elif temp_chessb[chosen_field_index][0].field_status == "Occupied":
                 return "Field is occupied. You can't move there."
@@ -190,6 +202,10 @@ def move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
     temp_chessb[chosen_field_index][0].field_status = "Occupied"                 # zmiana statusu pola wybranego po przeniesieniu tam pionka
     temp_chessb[which_pawn_field_index][1] = pawns()[-1]                         # ustawienie wartości obiektu klasy Pawn na wartośc W_O_P w dotychczasowym polu
     temp_chessb[which_pawn_field_index][0].field_status = "Free"                 # oraz ustawienie statusu zwolnionego pola na Free
+    if temp_chessb[which_pawn_field_index][1].pawn_colour == "white":
+        return "white"
+    else:
+        return "black"
 
 
 def capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
@@ -218,28 +234,25 @@ def capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
         move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
         return "You captured enemy pawn!"
     
-        
-def main_game():
-    clear_screen()
-    start_game_screen()
-    print('\n')
-    temp_chessboard = chessboard()
-    clear_screen()
-    shows_game_board(temp_chessboard)
-    while (len(black_pawn_names) > 0) or (len(white_pawn_names) > 0):
-        info = is_move_correct(take_user_move(), temp_chessboard)
-        clear_screen()
-        shows_game_board(temp_chessboard)
+
+def show_info(info):
+    if info == "white" or info == "black":
+        print('')
+    else:
         print(info)
-        # for x in range(64):
-        #     if temp_chessboard[x][0].field_status != "UNUSED":
-        #         print(temp_chessboard[x][0].field_name, end=", ")
-        #         print(temp_chessboard[x][0].field_status, end=", ")
-        #         print(temp_chessboard[x][1].pawn_name)
-    end_game_screen()
-
-
+        
+        
+def whose_turn(info):
+    if info == "white":
+        return "black"
+    else:
+        return "white"
+    
+    
 def shows_game_board(temp_chessb):
+    """ Shows chessboard. Uses Unicode signs to draw chessboard.
+        Uses prepared earlier shortcuts for every needed signs. """
+    
     # clear_screen()
     cols = all_fields_names[0:8]
     rows = all_fields_names[::8]
@@ -297,7 +310,7 @@ def start_game_screen():
     f = Figlet(font="standard")
     print(colored(f.renderText("CHECKERS"), "green"))
     time.sleep(1)  # Used time module for program delay
-    f = Figlet(font="digital")
+    f = Figlet(font="bubble")
     print(colored(f.renderText("       May The Best Win"), "red"))
     time.sleep(2)
 
@@ -305,7 +318,7 @@ def start_game_screen():
 def end_game_screen():
     time.sleep(2)
     clear_screen()
-    start_screen()
+    start_game_screen()
     answer = input(colored("       Do You want play again [Y]es/[N]o ? ", "green"))
     if answer == "n":
         goodbye_screen()
@@ -318,9 +331,30 @@ def goodbye_screen():
     """Shows goodbye screen"""
 
     clear_screen()
-    start_screen()
+    start_game_screen()
     f = Figlet(font ="standard")
     print(colored(f.renderText('GOODBYE'), "magenta"))
     
     
+def main_game():
+    temp_chessboard = chessboard()
+    clear_screen()
+    start_game_screen()
+    print('\n')
+    clear_screen()
+    shows_game_board(temp_chessboard)
+    turn = "white"
+    while (len(black_pawn_names) > 0) or (len(white_pawn_names) > 0):
+        announcement = is_move_correct(take_user_move(turn), temp_chessboard)
+        clear_screen()
+        shows_game_board(temp_chessboard)
+        show_info(announcement)
+        turn = whose_turn(announcement)
+    end_game_screen()
+    
+
+def computer_move():
+
+    
+
 main_game()
