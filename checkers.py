@@ -42,11 +42,8 @@ active_fields_names = ['A2', 'A4', 'A6', 'A8',
                        'H1', 'H3', 'H5', 'H7']
 
 # Names of border fields, i.e. those where the possibility of movement is limited by the edges of the board
-# PONIZEJ DO WYWALENIA
-border_fields_names = ['A2', 'A4', 'A6', 'A8',
-                       'B1', 'D1', 'F1', 'H1',
-                       'H3', 'H5', 'H7',
-                       'C8', 'E8', 'G8']
+border_fields_names_left = ['B1', 'D1', 'F1']
+border_fields_names_right = ['A8', 'C8', 'E8', 'G8']
 
 
 # The names of the black pawns
@@ -87,10 +84,6 @@ class Pawn:
         self.pawn_colour = pawn_colour                # Black or White.
         self.pawn_place = pawn_place                  # The place where pawn is on the board.
     
-    # do wywalenia
-    def pawn_move(self):
-        pass
-
 
 class Field:
     def __init__(self, field_name, field_status="Free"):
@@ -168,16 +161,15 @@ def take_user_move(who_turn):
 def is_move_correct(move_func, temp_chessb):
     which_field = move_func[0]                  # field name (name only, not object)
     which_pawn = move_func[1]                   # pawn name (name only, not object)
-    for fields in temp_chessb:
-        if which_pawn == fields[1].pawn_name:
-            which_pawn_field_index = temp_chessb.index(fields)
+    for field in temp_chessb:
+        if which_pawn == field[1].pawn_name:
+            which_pawn_field_index = temp_chessb.index(field)
             break
             
-    for fields in temp_chessb:
-        if which_field == fields[0].field_name:
-            chosen_field_index = temp_chessb.index(fields)
+    for field in temp_chessb:
+        if which_field == field[0].field_name:
+            chosen_field_index = temp_chessb.index(field)
             distance = which_pawn_field_index - chosen_field_index
-        
             # check distance, is it not too long
             if (abs(distance) != 7) and (abs(distance) != 14) and (abs(distance) != 9) and (abs(distance) != 18):
                 return "You can't move there. Wrong distance."
@@ -198,10 +190,10 @@ def is_move_correct(move_func, temp_chessb):
                 
     
 def move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
-    temp_chessb[chosen_field_index][1] = temp_chessb[which_pawn_field_index][1]  # skopiowanie obiektu klasy Pawn z pola gdzie sie znajduje na pole wskazane
-    temp_chessb[chosen_field_index][0].field_status = "Occupied"                 # zmiana statusu pola wybranego po przeniesieniu tam pionka
-    temp_chessb[which_pawn_field_index][1] = pawns()[-1]                         # ustawienie wartości obiektu klasy Pawn na wartośc W_O_P w dotychczasowym polu
-    temp_chessb[which_pawn_field_index][0].field_status = "Free"                 # oraz ustawienie statusu zwolnionego pola na Free
+    temp_chessb[chosen_field_index][1] = temp_chessb[which_pawn_field_index][1]  # copying a Pawn class object from the field where it is to the indicated field
+    temp_chessb[chosen_field_index][0].field_status = "Occupied"                 # change the status of a field selected after moving a pawn there
+    temp_chessb[which_pawn_field_index][1] = pawns()[-1]                         # setting the value of the Pawn class object to the value W_O_P in the current field
+    temp_chessb[which_pawn_field_index][0].field_status = "Free"                 # and setting the status of the released field to Free
     if temp_chessb[which_pawn_field_index][1].pawn_colour == "white":
         return "white"
     else:
@@ -229,6 +221,7 @@ def capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
             white_pawn_names.remove(temp_chessb[middle_field_index][1].pawn_name)
         elif temp_chessb[middle_field_index][1].pawn_colour == "black":
             black_pawn_names.remove(temp_chessb[middle_field_index][1].pawn_name)
+        # two lines below delete captured pawn from chessboard
         temp_chessb[middle_field_index][1] = pawns()[-1]
         temp_chessb[middle_field_index][0].field_status = "Free"
         move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
@@ -278,11 +271,15 @@ def shows_game_board(temp_chessb):
     for y in range(8):
         print(VS, '', rows[y][0], '', VS, end="")       # shows letters from A to H at the left side of chessboard
         for z in range(y*8, y*8+8):
+            if temp_chessb[z][1].pawn_name in white_pawn_names:
+                colored_pawn = colored(temp_chessb[z][1].pawn_name, "yellow")
+            elif temp_chessb[z][1].pawn_name in black_pawn_names:
+                colored_pawn = colored(temp_chessb[z][1].pawn_name, "blue")
             if temp_chessb[z][1].pawn_name != "W_O_P":      #
                 if len(temp_chessb[z][1].pawn_name) == 3:   # for names of pawn which are 3 chars length
-                    print('', temp_chessb[z][1].pawn_name, VS, end="")
+                    print('', colored_pawn, VS, end="")
                 else:
-                    print(temp_chessb[z][1].pawn_name, VS, end="")  # for names of pawn which are 4 chars length, delete space at front
+                    print(colored_pawn, VS, end="")  # for names of pawn which are 4 chars length, delete space at front
             else:
                 if temp_chessb[z][0].field_status != "UNUSED":
                     print('    ', VS, end="")
@@ -308,11 +305,12 @@ def start_game_screen():
     """ Show start screen. Use pyfigled and termcolor modules"""
     
     f = Figlet(font="standard")
-    print(colored(f.renderText("CHECKERS"), "green"))
+    print(colored(f.renderText("           CHECKERS"), "green"))
     time.sleep(1)  # Used time module for program delay
-    f = Figlet(font="bubble")
-    print(colored(f.renderText("       May The Best Win"), "red"))
-    time.sleep(2)
+    f = Figlet(font="doom")
+    print(colored(f.renderText("May The  Best Win"), "red"))
+    # print(colored("       May The Best Win", "red"))
+    time.sleep(3)
 
 
 def end_game_screen():
@@ -350,11 +348,102 @@ def main_game():
         shows_game_board(temp_chessboard)
         show_info(announcement)
         turn = whose_turn(announcement)
+        computer_move_and_capture(temp_chessboard)
     end_game_screen()
     
 
-def computer_move():
+def computer_move_and_capture(temp_chessb):
+    possible_moves = []
+    possible_captures = []
+    possible_enemy_counterattacks = []
+    for field in temp_chessb:
+        if field[1].pawn_name in black_pawn_names:
+            which_pawn = field[1]
+            which_pawn_field_index = temp_chessb.index(field)
+            
+            # POSSIBILITY OF PAWN MOVE
+            # section to check if computer's move is possible
+            # left movement
+            comp_move_chosen_field_left_index = which_pawn_field_index + 7
+            possible_partial_move = []
+            if temp_chessb[comp_move_chosen_field_left_index][0].field_status == "Free":
+                possible_partial_move.append(which_pawn.pawn_name)
+                possible_partial_move.append(temp_chessb[comp_move_chosen_field_left_index][0].field_name)
+                possible_moves.append(possible_partial_move)
 
+            # section to check if computer's move is possible
+            # right movement
+            comp_move_chosen_field_right_index = which_pawn_field_index + 9
+            possible_partial_move = []
+            if temp_chessb[comp_move_chosen_field_right_index][0].field_status == "Free":
+                possible_partial_move.append(which_pawn.pawn_name)
+                possible_partial_move.append(temp_chessb[comp_move_chosen_field_right_index][0].field_name)
+                possible_moves.append(possible_partial_move)
+
+            # POSSIBILITY OF PAWN CAPTURE
+            # section to check if capture pawn by computer is possible
+            # capturing a pawn to the left
+            comp_capture_left_field_index = which_pawn_field_index + 14
+            possible_partial_captures = []
+            if temp_chessb[comp_move_chosen_field_left_index][0].field_status == "Free" or temp_chessb[comp_move_chosen_field_left_index][1].pawn_colour == "black":
+                pass
+            elif temp_chessb[comp_capture_left_field_index][0].field_status == "Free":
+                possible_partial_captures.append(which_pawn.pawn_name)
+                possible_partial_captures.append(temp_chessb[comp_capture_left_field_index][0].field_name)
+                possible_captures.append(possible_partial_captures)
+
+            # section to check if capture pawn by computer is possible
+            # capturing a pawn to the right
+            comp_capture_right_field_index = which_pawn_field_index + 18
+            possible_partial_captures = []
+            if temp_chessb[comp_move_chosen_field_right_index][0].field_status == "Free" or temp_chessb[comp_move_chosen_field_right_index][1].pawn_colour == "black":
+                pass
+            elif temp_chessb[comp_capture_right_field_index][0].field_status == "Free":
+                possible_partial_captures.append(which_pawn.pawn_name)
+                possible_partial_captures.append(temp_chessb[comp_capture_right_field_index][0].field_name)
+                possible_captures.append(possible_partial_captures)
+
+    # POSSIBILITY OF ENEMY COUNTERATTACK
+    for x in temp_chessb:
+        for y in range(len(possible_moves)):
+            if x[0].field_name in possible_moves[y]:
+                possible_comp_move_index = temp_chessb.index(x)
+                possible_enemy_stay_index = possible_comp_move_index+9
+                if temp_chessb[possible_enemy_stay_index][1].pawn_colour == "white":
+                    print("EJJJJ TUTAJ NIE!!!")
+                    possible_enemy_counterattacks.append(possible_enemy_stay_index)
+ 
+            
+    print(possible_moves)
+    print(possible_captures)
+    print(possible_enemy_counterattacks)
     
+    return "black"
+
+
+# def possible_enemy_attack(temp_chessb):
+#     possible_enemy_captures = []
+#     for field in temp_chessb:
+#         if field[1].pawn_name in white_pawn_names:
+#             which_pawn = field[1]
+#             which_pawn_field_index = temp_chessb.index(field)
+#
+#             black_pawn_to_capture_right_field_index = which_pawn_field_index - 7
+#             black_pawn_to_cature_next_right_filed_index = which_pawn_field_index - 14
+#             possible_enemy_captures_partial = []
+#             if temp_chessb[enemy_move_chosen_field_left_index][1].pawn_name in black_pawn_names:
+#                 possible_enemy_captures_partial.append(which_pawn.pawn_name)
+#                 possible_partial_move.append(temp_chessb[comp_move_chosen_field_left_index][0].field_name)
+#                 possible_moves.append(possible_partial_move)
+#
+#             # section to check if computer's move is possible
+#             # right movement
+#             comp_move_chosen_field_right_index = which_pawn_field_index + 9
+#             possible_partial_move = []
+#             if temp_chessb[comp_move_chosen_field_right_index][0].field_status == "Free":
+#                 possible_partial_move.append(which_pawn.pawn_name)
+#                 possible_partial_move.append(temp_chessb[comp_move_chosen_field_right_index][0].field_name)
+#                 possible_moves.append(possible_partial_move)
+
 
 main_game()
