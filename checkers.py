@@ -142,51 +142,57 @@ def chessboard():
 def take_user_move(who_turn):
     print(f"Now it's turn: {who_turn}")
     pawn_name_choose = input("Enter the name of the pawn: ")
-    # ask for pawn until chosen pawn is on white or black pawn lists and the colour of pawn is equal who_turn
-    if who_turn == "white":
-        while pawn_name_choose.upper() not in white_pawn_names:
-            pawn_name_choose = input("Enter the correct name of the pawn: ")
-    elif who_turn == "black":
-        while pawn_name_choose.upper() not in black_pawn_names:
-            pawn_name_choose = input("Enter the correct name of the pawn: ")
-    field_name_choose = input("Enter a field name: ")
-    
-    # ask for field until chosen field is on active field name list
-    while field_name_choose.upper() not in active_fields_names:
-        field_name_choose = input("Please enter a valid field name: ")
-    return field_name_choose.upper(), pawn_name_choose.upper()
+    if pawn_name_choose == "end":
+        return "end"
+    else:
+        # ask for pawn until chosen pawn is on white or black pawn lists and the colour of pawn is equal who_turn
+        if who_turn == "white":
+            while pawn_name_choose.upper() not in white_pawn_names:
+                pawn_name_choose = input("Enter the correct name of the pawn: ")
+        elif who_turn == "black":
+            while pawn_name_choose.upper() not in black_pawn_names:
+                pawn_name_choose = input("Enter the correct name of the pawn: ")
+        field_name_choose = input("Enter a field name: ")
+        
+        # ask for field until chosen field is on active field name list
+        while field_name_choose.upper() not in active_fields_names:
+            field_name_choose = input("Please enter a valid field name: ")
+        return field_name_choose.upper(), pawn_name_choose.upper()
     
 
 def move_if_move_is_correct(move_func, temp_chessb):
    # print(move_func[0])
-    which_field = move_func[0]                  # field name (name only, not object)
-    which_pawn = move_func[1]                   # pawn name (name only, not object)
-    for field in temp_chessb:
-        if which_pawn == field[1].pawn_name:
-            which_pawn_field_index = temp_chessb.index(field)
-            break
-            
-    for field in temp_chessb:
-        if which_field == field[0].field_name:
-            chosen_field_index = temp_chessb.index(field)
-            distance = which_pawn_field_index - chosen_field_index
-            # check distance, is it not too long
-            if (abs(distance) != 7) and (abs(distance) != 14) and (abs(distance) != 9) and (abs(distance) != 18):
-                return "You can't move there. Wrong distance."
-                # check if pawn moves back, that move is prohibited
-            elif ((which_pawn in white_pawn_names) and distance < 0) or ((which_pawn in black_pawn_names) and distance > 0):
-                return f"You can't move back your pawn."
-            elif (abs(which_pawn_field_index-chosen_field_index) == 14) or (abs(which_pawn_field_index-chosen_field_index) == 18):
-                info_capture = capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
-                return info_capture
-            # check that the selected field is free. If yes...
-            elif temp_chessb[chosen_field_index][0].field_status == "Free":
-                info_move = move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
-                return info_move
-            # check that the selected field is free. If no...
-            elif temp_chessb[chosen_field_index][0].field_status == "Occupied":
-                return "Field is occupied. You can't move there."
+    if move_func == "end":
+        return "end"
+    else:
+        which_field = move_func[0]                  # field name (name only, not object)
+        which_pawn = move_func[1]                   # pawn name (name only, not object)
+        for field in temp_chessb:
+            if which_pawn == field[1].pawn_name:
+                which_pawn_field_index = temp_chessb.index(field)
+                break
                 
+        for field in temp_chessb:
+            if which_field == field[0].field_name:
+                chosen_field_index = temp_chessb.index(field)
+                distance = which_pawn_field_index - chosen_field_index
+                # check distance, is it not too long
+                if (abs(distance) != 7) and (abs(distance) != 14) and (abs(distance) != 9) and (abs(distance) != 18):
+                    return "You can't move there. Wrong distance."
+                    # check if pawn moves back, that move is prohibited
+                elif ((which_pawn in white_pawn_names) and distance < 0) or ((which_pawn in black_pawn_names) and distance > 0):
+                    return f"You can't move back your pawn."
+                elif (abs(which_pawn_field_index-chosen_field_index) == 14) or (abs(which_pawn_field_index-chosen_field_index) == 18):
+                    info_capture = capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
+                    return info_capture
+                # check that the selected field is free. If yes...
+                elif temp_chessb[chosen_field_index][0].field_status == "Free":
+                    info_move = move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index)
+                    return info_move
+                # check that the selected field is free. If no...
+                elif temp_chessb[chosen_field_index][0].field_status == "Occupied":
+                    return "Field is occupied. You can't move there."
+                    
     
 def move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
     temp_chessb[chosen_field_index][1] = temp_chessb[which_pawn_field_index][1]  # copying a Pawn class object from the field where it is to the indicated field
@@ -197,6 +203,7 @@ def move_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
 
 
 def capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
+    middle_field_index = None
     if which_pawn_field_index - chosen_field_index == -14:
         middle_field_index = (which_pawn_field_index + 7)
     elif which_pawn_field_index - chosen_field_index == 14:
@@ -205,6 +212,7 @@ def capture_pawn(temp_chessb, which_pawn_field_index, chosen_field_index):
         middle_field_index = (which_pawn_field_index + 9)
     elif which_pawn_field_index - chosen_field_index == 18:
         middle_field_index = (which_pawn_field_index - 9)
+
     
     if temp_chessb[middle_field_index][0].field_status == "Free":
         return "You can't move there. You can't jump over free field."
@@ -265,6 +273,7 @@ def shows_game_board(temp_chessb):
     for y in range(8):
         print(VS, '', rows[y][0], '', VS, end="")       # shows letters from A to H at the left side of chessboard
         for z in range(y*8, y*8+8):
+            colored_pawn = None
             if temp_chessb[z][1].pawn_name in white_pawn_names:
                 colored_pawn = colored(temp_chessb[z][1].pawn_name, "yellow")
             elif temp_chessb[z][1].pawn_name in black_pawn_names:
@@ -312,7 +321,9 @@ def who_is_winner():
         print(colored(f.renderText("The Winner are Whites"), "magenta"))
     elif len(white_pawn_names) == 0:
         print(colored(f.renderText("The Winner are Blacks"), "magenta"))
-        
+    else:
+        print(colored(f.renderText("    Nobody Wins"), "magenta"))
+    
     
 def end_game_screen():
     time.sleep(2)
@@ -334,6 +345,7 @@ def goodbye_screen():
     start_game_screen()
     f = Figlet(font ="standard")
     print(colored(f.renderText('     GOODBYE!'), "magenta"))
+    time.sleep(2)
     
     
 def computer_move_and_capture(temp_chessb):
@@ -409,15 +421,19 @@ def computer_move_and_capture(temp_chessb):
     for items in possible_moves:
         if items not in possible_enemy_counterattacks:
             computer_possible_moves.append(items)
+        else:
+            computer_possible_moves = possible_enemy_counterattacks
     #
     # print("possible_moves: ", possible_moves)
     # print("possible_captures: ", possible_captures)
     # print("possible_enemy_counterattacks: ", possible_enemy_counterattacks)
     # print("computer_possible_moves: ", computer_possible_moves)
     #
-    if len(possible_captures) > 0:
+    
+    
+    if len(possible_captures) > 1:
         which_move = possible_captures[r.randrange(len(possible_captures))]
-    elif len(computer_possible_moves) > 1:
+    elif len(computer_possible_moves) > 0:
         which_move = computer_possible_moves[r.randrange(len(computer_possible_moves))]
     rev_which_move = which_move[::-1]
     time.sleep(1)
@@ -426,7 +442,7 @@ def computer_move_and_capture(temp_chessb):
 
 def choose_players():
     f = Figlet(font="small")
-    print(colored(f.renderText(" Choose Opponent: "), "cyan"))
+    print(colored(f.renderText("   Choose Opponent: "), "cyan"))
     print(colored(f.renderText("        1.  Human"), "magenta"))
     print(colored(f.renderText("        2.  Computer"), "magenta"))
     second_player = input()
@@ -449,6 +465,7 @@ def main_game():
     turn = "white"
    
     while (len(black_pawn_names) > 0) and (len(white_pawn_names) > 0):
+        move_function = None
         if player == "human":
             move_function = take_user_move(turn)
         elif player == "computer" and turn == "white":
@@ -457,10 +474,13 @@ def main_game():
             move_function = computer_move_and_capture(temp_chessboard)
             
         announcement = move_if_move_is_correct(move_function, temp_chessboard)
-        clear_screen()
-        shows_game_board(temp_chessboard)
-        show_info(announcement)
-        turn = whose_turn(announcement)
+        if announcement == "end":
+            break
+        else:
+            clear_screen()
+            shows_game_board(temp_chessboard)
+            show_info(announcement)
+            turn = whose_turn(announcement)
     
     end_game_screen()
 
