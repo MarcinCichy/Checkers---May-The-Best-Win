@@ -60,6 +60,7 @@ white_pawn_names = ['WP1', 'WP2', 'WP3', 'WP4',
 without_pawns_name = ['W_O_P']
 
 
+list_of_distances = [7, 9, 14, 18]
 """
     shortcuts for Unicode signs to draw chessboard
 """
@@ -344,27 +345,19 @@ def goodbye_screen():
     clear_screen()
     start_game_screen()
     f = Figlet(font ="standard")
-    print(colored(f.renderText('     GOODBYE!'), "magenta"))
+    print(colored(f.renderText('       GOODBYE!'), "magenta"))
     time.sleep(2)
     
     
-def computer_move_and_capture(temp_chessb):
-    """ It is a function that performs computer movements and captures the opponent's pieces.
-        This function tries to guess human movements.
-        This function is really huge. This is no K.I.S.S, but it works. I know.
-        This is K.I.W.I -> Keep It Working Idiot  ;-)"""
-    time.sleep(1)
+def computer_move(temp_chessb):
+    """ POSSIBILITY OF COMPUTER'S PAWN MOVE
+        function to check if computer's move is possible """
     possible_moves = []
-    possible_captures = []
-    possible_enemy_counterattacks = []
-    list_of_distances = [7, 9, 14, 18]
     for field in temp_chessb:
         if field[1].pawn_name in black_pawn_names:  # field with pawn which is black
             which_pawn = field[1]  # object -> black pawn
             which_pawn_field_index = temp_chessb.index(field)  # index of field with black pawn
-            
-            """ POSSIBILITY OF PAWN MOVE
-                section to check if computer's move is possible """
+
             for distance in list_of_distances:
                 if distance == 7 or distance == 9:
                     comp_move_chosen_field_index = which_pawn_field_index + distance  # the field where computer could put his pawn
@@ -376,10 +369,21 @@ def computer_move_and_capture(temp_chessb):
                             possible_partial_move.append(which_pawn.pawn_name)  # add the pawn which could be moved to list of possibility
                             possible_partial_move.append(temp_chessb[comp_move_chosen_field_index][0].field_name)  # add this free field to that list too
                             possible_moves.append(possible_partial_move)  # add partial move list to list with all possibility moves
+    return possible_moves
 
-                    """ POSSIBILITY OF PAWN CAPTURE
-                        section to check if capture pawn by computer is possible """
-                elif distance == 14 or distance == 18:
+
+def computer_capture(temp_chessb):
+    """ POSSIBILITY OF HUMAN'S PAWN CAPTURE BY COMPUTER
+        function to check if capture pawn by computer is possible """
+    
+    possible_captures = []
+    for field in temp_chessb:
+        if field[1].pawn_name in black_pawn_names:  # field with pawn which is black
+            which_pawn = field[1]  # object -> black pawn
+            which_pawn_field_index = temp_chessb.index(field)  # index of field with black pawn
+
+            for distance in list_of_distances:
+                if distance == 14 or distance == 18:
                     if which_pawn_field_index >= 48:
                         pass
                     else:
@@ -390,13 +394,17 @@ def computer_move_and_capture(temp_chessb):
                         else:
                             enemy_position_index = comp_capture_field_index - (distance // 2)
                             # print(enemy_position_index)
-                           
+                
                             if temp_chessb[comp_capture_field_index][0].field_status == "Free" and temp_chessb[int(enemy_position_index)][1].pawn_colour == "white":  # if the field where comp put his pawn after capture white pawn is free and the pawn which was jumped over by computer if white
                                 possible_partial_captures.append(which_pawn.pawn_name)  # add the pawn which could possible captures to the partial list
                                 possible_partial_captures.append(temp_chessb[comp_capture_field_index][0].field_name)  # add the field where comp could possible put his pawn after capture enemy's pawn
                                 possible_captures.append(possible_partial_captures)  # add partial possible capture to list with all possible captures
-        
+    return possible_captures
+
+
+def enemy_counterattack(temp_chessb, possible_moves):
     """ POSSIBILITY OF ENEMY (HUMAN BEING) COUNTERATTACK """
+    possible_enemy_counterattacks = []
     for f in temp_chessb:
          for y in range(len(possible_moves)):
             if f[0].field_name in possible_moves[y]:    # if field (from whole chessboard) is in list with possible computer's moves
@@ -416,30 +424,116 @@ def computer_move_and_capture(temp_chessb):
                                     possible_enemy_counterattacks.append(possible_enemy_counterattacks_partial)         # add that pawn's name and field's name to the last list witch contains coordinates to possible enemy's attack
                     else:
                         pass
-                    
+    return possible_enemy_counterattacks
+
+
+def computer_final_decision_about_move(poss_enemy_counterattack, poss_captures, poss_mov):
     computer_possible_moves = []
-    for items in possible_moves:
-        if items not in possible_enemy_counterattacks:
+    for items in poss_mov:
+        if items not in poss_enemy_counterattack:
             computer_possible_moves.append(items)
         else:
-            computer_possible_moves = possible_enemy_counterattacks
-    #
-    # print("possible_moves: ", possible_moves)
-    # print("possible_captures: ", possible_captures)
-    # print("possible_enemy_counterattacks: ", possible_enemy_counterattacks)
-    # print("computer_possible_moves: ", computer_possible_moves)
-    #
-    
-    
-    if len(possible_captures) > 1:
-        which_move = possible_captures[r.randrange(len(possible_captures))]
+            computer_possible_moves = poss_enemy_counterattack
+
+    time.sleep(1)           # Imagine that computer thinks ;)
+    if len(poss_captures) > 0:
+        which_move = poss_captures[r.randrange(len(poss_captures))]
+        return which_move
     elif len(computer_possible_moves) > 0:
         which_move = computer_possible_moves[r.randrange(len(computer_possible_moves))]
-    rev_which_move = which_move[::-1]
-    time.sleep(1)
-    return rev_which_move
-
-
+        return which_move
+   
+        
+# def computer_move_and_capture(temp_chessb):
+#     """ It is a function that performs computer movements and captures the opponent's pieces.
+#         This function tries to guess human movements.
+#         This function is really huge. This is no K.I.S.S, but it works. I know.
+#         This is K.I.W.I -> Keep It Working Idiot  ;-)"""
+#     time.sleep(1)
+#     possible_moves = []
+#     possible_captures = []
+#     possible_enemy_counterattacks = []
+#     list_of_distances = [7, 9, 14, 18]
+#     for field in temp_chessb:
+#         if field[1].pawn_name in black_pawn_names:  # field with pawn which is black
+#             which_pawn = field[1]  # object -> black pawn
+#             which_pawn_field_index = temp_chessb.index(field)  # index of field with black pawn
+#
+#             """ POSSIBILITY OF PAWN MOVE
+#                 section to check if computer's move is possible """
+#             for distance in list_of_distances:
+#                 if distance == 7 or distance == 9:
+#                     comp_move_chosen_field_index = which_pawn_field_index + distance  # the field where computer could put his pawn
+#                     possible_partial_move = []  # empty list to store possible computer moves
+#                     if comp_move_chosen_field_index > 63:
+#                         continue
+#                     else:
+#                         if temp_chessb[comp_move_chosen_field_index][0].field_status == "Free":  # if field where comp could put his pawn is free, after move pawn
+#                             possible_partial_move.append(which_pawn.pawn_name)  # add the pawn which could be moved to list of possibility
+#                             possible_partial_move.append(temp_chessb[comp_move_chosen_field_index][0].field_name)  # add this free field to that list too
+#                             possible_moves.append(possible_partial_move)  # add partial move list to list with all possibility moves
+#
+#                     """ POSSIBILITY OF PAWN CAPTURE
+#                         section to check if capture pawn by computer is possible """
+#                 elif distance == 14 or distance == 18:
+#                     if which_pawn_field_index >= 48:
+#                         pass
+#                     else:
+#                         comp_capture_field_index = which_pawn_field_index + distance  # the field where comp should put his pawn after capture white pawn
+#                         possible_partial_captures = []  # empty list to store possible computer moves after capture
+#                         if comp_capture_field_index > 63:
+#                             continue
+#                         else:
+#                             enemy_position_index = comp_capture_field_index - (distance // 2)
+#                             # print(enemy_position_index)
+#
+#                             if temp_chessb[comp_capture_field_index][0].field_status == "Free" and temp_chessb[int(enemy_position_index)][1].pawn_colour == "white":  # if the field where comp put his pawn after capture white pawn is free and the pawn which was jumped over by computer if white
+#                                 possible_partial_captures.append(which_pawn.pawn_name)  # add the pawn which could possible captures to the partial list
+#                                 possible_partial_captures.append(temp_chessb[comp_capture_field_index][0].field_name)  # add the field where comp could possible put his pawn after capture enemy's pawn
+#                                 possible_captures.append(possible_partial_captures)  # add partial possible capture to list with all possible captures
+#
+#     """ POSSIBILITY OF ENEMY (HUMAN BEING) COUNTERATTACK """
+#     for f in temp_chessb:
+#          for y in range(len(possible_moves)):
+#             if f[0].field_name in possible_moves[y]:    # if field (from whole chessboard) is in list with possible computer's moves
+#                 # index field where computer movement is allowed
+#                 possible_comp_move_index = temp_chessb.index(f)  # set index of field where possible computer could moves its pawn
+#                 # for all possible distances (7,9, 14 i 18)
+#                 for distance in list_of_distances:
+#                     if distance < 10:   # only for moves, without captures
+#                         # possible_enemy_counterattacks_partial = []  # empty list to store possibility of human moves
+#                         possible_enemy_stay_index = possible_comp_move_index + distance  # set the index of field where it is possibility to stay human's pawn -> this is index of possible move plus distance
+#                         if possible_enemy_stay_index > 63:
+#                             continue
+#                         else:
+#                             if temp_chessb[possible_enemy_stay_index][1].pawn_colour == "white":  # if the pawn which is in possible field is white
+#                                 possible_enemy_counterattacks_partial = possible_moves[y]   # then add to the partial list [comp's pawn name, possible field name], this is the place where enemy could attack
+#                                 if temp_chessb[possible_comp_move_index][0].field_name not in border_fields_names and possible_enemy_counterattacks_partial not in possible_enemy_counterattacks:      # if field is not in the border_fields_list (where attack isn't possible)
+#                                     possible_enemy_counterattacks.append(possible_enemy_counterattacks_partial)         # add that pawn's name and field's name to the last list witch contains coordinates to possible enemy's attack
+#                     else:
+#                         pass
+#
+#     computer_possible_moves = []
+#     for items in possible_moves:
+#         if items not in possible_enemy_counterattacks:
+#             computer_possible_moves.append(items)
+#         else:
+#             computer_possible_moves = possible_enemy_counterattacks
+#     #
+#     # print("possible_moves: ", possible_moves)
+#     # print("possible_captures: ", possible_captures)
+#     # print("possible_enemy_counterattacks: ", possible_enemy_counterattacks)
+#     # print("computer_possible_moves: ", computer_possible_moves)
+#     #
+#
+#
+#     if len(possible_captures) > 1:
+#         which_move = possible_captures[r.randrange(len(possible_captures))]
+#     elif len(computer_possible_moves) > 0:
+#         which_move = computer_possible_moves[r.randrange(len(computer_possible_moves))]
+#     rev_which_move = which_move[::-1]
+#     time.sleep(1)
+#     return rev_which_move
 def choose_players():
     f = Figlet(font="small")
     print(colored(f.renderText("   Choose Opponent: "), "cyan"))
@@ -471,8 +565,11 @@ def main_game():
         elif player == "computer" and turn == "white":
             move_function = take_user_move(turn)
         elif player == "computer" and turn == "black":
-            move_function = computer_move_and_capture(temp_chessboard)
-            
+            enemy_counterattacks = enemy_counterattack(temp_chessboard, computer_move(temp_chessboard))
+            rev_move_function = computer_final_decision_about_move(enemy_counterattacks, computer_capture(temp_chessboard), computer_move(temp_chessboard))
+            move_function = rev_move_function[::-1]
+            time.sleep(1)
+
         announcement = move_if_move_is_correct(move_function, temp_chessboard)
         if announcement == "end":
             break
@@ -481,7 +578,7 @@ def main_game():
             shows_game_board(temp_chessboard)
             show_info(announcement)
             turn = whose_turn(announcement)
-    
+
     end_game_screen()
 
 
