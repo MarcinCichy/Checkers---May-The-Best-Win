@@ -11,9 +11,9 @@ def clear_screen():
     """ Clear the screen in depends of operation system (Windows, Linux or iOS).
         It was copied from internet,  I will find out how it works in future (_=system is unknown for me) :)"""
     if sys_name == "nt":
-        _= system('cls')
+        _ = system('cls')
     else:
-        _= system('clear')
+        _ = system('clear')
 
 
 def show_info(info):

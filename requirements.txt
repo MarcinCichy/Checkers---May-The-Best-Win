@@ -1,2 +1,5 @@
-termcolor~=1.1.0
+termcolor~=2.2.0
 pyfiglet~=0.8.post1
+
+PyCharm:
+In "Run Configuration Settings", in section "Execution" set checkbox "Emulate terminal in output console"
