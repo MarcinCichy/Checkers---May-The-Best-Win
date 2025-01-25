@@ -7,8 +7,9 @@ from os import system
 from os import name as sys_name
 import time
 
+
 def clear_screen():
-    """ Clear the screen in depends of operation system (Windows, Linux or iOS).
+    """ Clear the screen in depends on operating system (Windows, Linux or iOS).
         It was copied from internet,  I will find out how it works in future (_=system is unknown for me) :)"""
     if sys_name == "nt":
         _ = system('cls')
@@ -81,3 +82,4 @@ def choose_players():
     elif second_player == "2":
         return "computer"
     time.sleep(1)
+    

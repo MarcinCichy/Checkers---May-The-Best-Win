@@ -23,17 +23,18 @@ WF = '\u2588'       # WHITE FIELD
 
 
 def shows_game_board(temp_chessb, wh_paw_nam, bla_paw_nam, all_fi_nm):
-	""" Shows chessboard. Uses Unicode signs to draw chessboard.
-		Uses prepared earlier shortcuts for every needed signs. """
+	"""
+	Shows chessboard. Uses Unicode signs to draw chessboard.
+		Uses prepared earlier shortcuts for every needed signs.
+	"""
 	
 	# clear_screen()
-	cols = all_fi_nm[0:8]	# all_fields_names
-	rows = all_fi_nm[::8]	# all_fields_names
+	cols = all_fi_nm[0:8]  # all_fields_names
+	rows = all_fi_nm[::8]  # all_fields_names
 	
 	# cols = 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'
 	# rows = 'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1'
-	
-	
+
 	# chessboard header
 	print(LUC, end="")
 	for i in range(0, 29, 4):
